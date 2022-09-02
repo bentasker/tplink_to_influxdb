@@ -3,23 +3,30 @@
 
 # List tapo devices
 tapo:
-    - 
-      name: "washing-machine"
-      ip : 192.168.3.152
-      
-    - 
-      name: "big-fridge"
-      ip : 192.168.3.153
+    # Tapo devices require that you log in with the credentials
+    # that you use to log into the app
+    #
+    user: "me@mymail.com"
+    passw: "mysecretpass"
+    devices:
+        - 
+            name: "washing-machine"
+            ip : 192.168.3.152
+        
+        - 
+            name: "big-fridge"
+            ip : 192.168.3.153
     
 # List kasa devices
 kasa:
-    - 
-      name: "desk-plug"
-      ip: 192.168.3.150
-      
-    - 
-      name: "tumble-dryer"
-      ip : 192.168.3.151
+    devices:
+        - 
+            name: "desk-plug"
+            ip: 192.168.3.150
+        
+        - 
+            name: "tumble-dryer"
+            ip : 192.168.3.151
 
 
 # InfluxDB outputs
@@ -33,8 +40,8 @@ influxdb:
         
     - 
         name: "local"
-        url: "http://192.168.2.1:8086"
-        token: "user:pass"
+        url: "http://192.168.3.84:8086"
+        token: ""
         org: ""
-        bucket: "telegraf/autogen"
+        bucket: "testing_db"
         
