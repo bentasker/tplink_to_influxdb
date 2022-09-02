@@ -55,7 +55,11 @@ def main():
                 token = influx["token"],
                 org = influx["org"]
             )
-            influxes.append(c)
+            influxes.append({"name": influx['name'],
+                             "bucket": influx["bucket"],
+                             "conn": c,
+                             "org" : influx["org"]
+                             })
 
 
     stats = {}
@@ -143,16 +147,20 @@ def poll_tapo(ip, user, passw):
 def sendPointsToDest(dest, points):
     ''' Iterate through the collected stats and write them out to InfluxDB
     '''
-    write_api = dest.write_api(write_options=SYNCHRONOUS)
+    write_api = dest['conn'].write_api(write_options=SYNCHRONOUS)
     for point in points:
-        sendToInflux(write_api, 
+        res = sendToInflux(write_api,
+                     dest['bucket'],
+                     dest['org'],
                      point, 
                      points[point]['now_usage_w'], 
                      points[point]['today_usage'],
                      points[point]['time']
                      )
+        if not res:
+            print(f"Failed to send point to {dest['name']}")
 
-def sendToInflux(write_api, name, watts, today_kwh, timestamp):
+def sendToInflux(write_api, bucket, org, name, watts, today_kwh, timestamp):
     ''' Take a set of values, and send them on to InfluxDB
     '''
     today_w = False
