@@ -55,22 +55,38 @@ def main():
             )
             influxes.append(c)
 
+
+    stats = {}
+
     for kasa in config["kasa"]["devices"]:
         now_usage_w, today_usage = poll_kasa(kasa['ip'])
-        if not now_usage_w:
-            print(f"Failed to communicate with device {kasa['ip']}")
+        if now_usage_w is False:
+            print(f"Failed to communicate with device {kasa['name']}")
             continue
         
         print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} Wh")
+        stats[kasa['name']] = {
+                "ip" : kasa['ip'],
+                "today_usage" : today_usage,
+                "now_usage_w" : now_usage_w
+            }
 
 
     for tapo in config["tapo"]["devices"]:
         now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
-        if not now_usage_w:
-            print(f"Failed to communicate with device {tapo['ip']}")
+        if now_usage_w is False:
+            print(f"Failed to communicate with device {tapo['name']}")
             continue
         
         print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} Wh")
+        stats[tapo['name']] = {
+                "ip" : tapo['ip'],
+                "today_usage" : today_usage,
+                "now_usage_w" : now_usage_w
+            }
+        
+
+    print(stats)
 
         
 def poll_kasa(ip):
@@ -113,7 +129,7 @@ def poll_tapo(ip, user, passw):
 
     today_usage = usage_dict["result"]["today_energy"]
     now_usage_w = usage_dict["result"]["current_power"] / 1000
-                                                    
+    
     return now_usage_w, today_usage
     
 
