@@ -5,10 +5,12 @@
 # pip install pyyaml influxdb-client PyP100 python-kasa
 
 import asyncio
+import influxdb_client
 import os
 import sys
+import time
 import yaml
-import influxdb_client
+
 
 from influxdb_client.client.write_api import SYNCHRONOUS
 from kasa import SmartPlug
@@ -57,6 +59,7 @@ def main():
 
 
     stats = {}
+    start_time = time.time_ns()
 
     for kasa in config["kasa"]["devices"]:
         now_usage_w, today_usage = poll_kasa(kasa['ip'])
@@ -66,9 +69,9 @@ def main():
         
         print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} Wh")
         stats[kasa['name']] = {
-                "ip" : kasa['ip'],
                 "today_usage" : today_usage,
-                "now_usage_w" : now_usage_w
+                "now_usage_w" : now_usage_w,
+                "time" : start_time
             }
 
 
@@ -80,13 +83,17 @@ def main():
         
         print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} Wh")
         stats[tapo['name']] = {
-                "ip" : tapo['ip'],
                 "today_usage" : today_usage,
-                "now_usage_w" : now_usage_w
+                "now_usage_w" : now_usage_w,
+                "time" : start_time
             }
         
 
     print(stats)
+    
+    # Iterate through the InfluxDB connections and send the data over
+    for influx in influxes:
+        sendPointsToDest(influx, stats)
 
         
 def poll_kasa(ip):
@@ -133,7 +140,39 @@ def poll_tapo(ip, user, passw):
     return now_usage_w, today_usage
     
 
+def sendPointsToDest(dest, points):
+    ''' Iterate through the collected stats and write them out to InfluxDB
+    '''
+    write_api = dest.write_api(write_options=SYNCHRONOUS)
+    for point in points:
+        sendToInflux(write_api, 
+                     point, 
+                     points[point]['now_usage_w'], 
+                     points[point]['today_usage'],
+                     points[point]['time']
+                     )
 
+def sendToInflux(write_api, name, watts, today_kwh, timestamp):
+    ''' Take a set of values, and send them on to InfluxDB
+    '''
+    today_w = False
+    if today_kwh:
+        # Our DB uses Wh rather that kWh so need to convert
+        today_w = today_kwh * 1000
+
+    try:
+        p = influxdb_client.Point("power_watts").tag("host", name).field("consumption", int(float(watts)))
+        write_api.write(bucket=bucket, org=org, record=p)
+        
+        if today_w:        
+            p = influxdb_client.Point("power_watts").tag("host", name).field("watts_today", int(float(today_w)))
+            write_api.write(bucket=bucket, org=org, record=p)
+
+        return True
+    except:
+        return False
+    
+    
 
 
 if __name__ == "__main__":
