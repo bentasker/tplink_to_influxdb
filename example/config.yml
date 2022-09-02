@@ -1,0 +1,40 @@
+---
+
+
+# List tapo devices
+tapo:
+    - 
+      name: "washing-machine"
+      ip : 192.168.3.152
+      
+    - 
+      name: "big-fridge"
+      ip : 192.168.3.153
+    
+# List kasa devices
+kasa:
+    - 
+      name: "desk-plug"
+      ip: 192.168.3.150
+      
+    - 
+      name: "tumble-dryer"
+      ip : 192.168.3.151
+
+
+# InfluxDB outputs
+influxdb:
+    -
+        name: "Cloud"
+        url: "https://foo.example.com"
+        token: "aaabbbccc=="
+        org: "my org"
+        bucket: "telegraf"
+        
+    - 
+        name: "local"
+        url: "http://192.168.2.1:8086"
+        token: "user:pass"
+        org: ""
+        bucket: "telegraf/autogen"
+        
