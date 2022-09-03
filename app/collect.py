@@ -45,7 +45,6 @@ def main():
     if not config:
         sys.exit(1)
     
-    print(config)
     # Create the InfluxDB clients
     influxes = []
 
@@ -92,9 +91,7 @@ def main():
                 "time" : start_time
             }
         
-
-    print(stats)
-    
+   
     # Iterate through the InfluxDB connections and send the data over
     for influx in influxes:
         sendPointsToDest(influx, stats)
