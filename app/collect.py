@@ -3,6 +3,8 @@
 #
 #
 # pip install pyyaml influxdb-client PyP100 python-kasa
+#
+#
 
 import asyncio
 import influxdb_client
@@ -11,15 +13,11 @@ import sys
 import time
 import yaml
 
-
 from influxdb_client.client.write_api import SYNCHRONOUS
 from kasa import SmartPlug
 from PyP100 import PyP110
 
-
-
 CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
-
 
 def load_config():
     ''' Read the config file
@@ -60,7 +58,6 @@ def main():
                              "org" : influx["org"]
                              })
 
-
     stats = {}
     start_time = time.time_ns()
 
@@ -77,7 +74,6 @@ def main():
                 "time" : start_time
             }
 
-
     for tapo in config["tapo"]["devices"]:
         now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
         if now_usage_w is False:
@@ -91,7 +87,6 @@ def main():
                 "time" : start_time
             }
         
-   
     # Iterate through the InfluxDB connections and send the data over
     for influx in influxes:
         sendPointsToDest(influx, stats)
@@ -102,22 +97,21 @@ def poll_kasa(ip):
     
     TODO: need to add some exception handling to this
     '''
+    
+    # Connect to the plug and receive stats
     p = SmartPlug(ip)
     asyncio.run(p.update())
-    
-    usage_dict = p.emeter_realtime
-    today_usage = p.emeter_today
-    
-    # emeter_today seems to be quite racey, sometimes returning 0 sometimes returning 0.001
-    # wh usage since it was powered on (at time of writing) is 80.
+        
+    # emeter_today relies on external connectivity - it uses NTP to keep track of time
+    # you need to allow UDP 123 outbound if you're restricting the plug's external connectivity
+    # otherwise you'll get 0 or 0.001 back instead of the real value
     # 
-    # probably better to just omit the metric for now.
+    # See https://github.com/home-assistant/core/issues/45436#issuecomment-766454897
     #
-    # It _may_ be because I've blocked the device from WAN access - https://github.com/home-assistant/core/issues/45436#issuecomment-766454897
-    # sounds like it needs NTP access to be able to track this.
-    #
-    # Allowing UDP 123 out seems to have resolved it
-    #today_usage = False
+    today_usage = p.emeter_today
+    usage_dict = p.emeter_realtime
+    
+    # Convert to watts
     now_usage_w = usage_dict["power_mw"] / 1000
 
     return now_usage_w, today_usage
@@ -157,6 +151,7 @@ def sendPointsToDest(dest, points):
         if not res:
             print(f"Failed to send point to {dest['name']}")
 
+
 def sendToInflux(write_api, bucket, org, name, watts, today_kwh, timestamp):
     ''' Take a set of values, and send them on to InfluxDB
     '''
@@ -176,8 +171,6 @@ def sendToInflux(write_api, bucket, org, name, watts, today_kwh, timestamp):
         return True
     except:
         return False
-    
-    
 
 
 if __name__ == "__main__":
