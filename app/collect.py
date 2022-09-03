@@ -70,7 +70,7 @@ def main():
             print(f"Failed to communicate with device {kasa['name']}")
             continue
         
-        print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} Wh")
+        print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
         stats[kasa['name']] = {
                 "today_usage" : today_usage,
                 "now_usage_w" : now_usage_w,
@@ -83,7 +83,7 @@ def main():
             print(f"Failed to communicate with device {tapo['name']}")
             continue
         
-        print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} Wh")
+        print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
         stats[tapo['name']] = {
                 "today_usage" : today_usage,
                 "now_usage_w" : now_usage_w,
@@ -111,7 +111,9 @@ def poll_kasa(ip):
     # 
     # See https://github.com/home-assistant/core/issues/45436#issuecomment-766454897
     #
-    today_usage = p.emeter_today
+    
+    # Convert from kWh to Wh
+    today_usage = p.emeter_today * 1000
     usage_dict = p.emeter_realtime
     
     # Convert to watts
@@ -160,8 +162,7 @@ def sendToInflux(write_api, bucket, org, name, watts, today_kwh, timestamp):
     '''
     today_w = False
     if today_kwh:
-        # Our DB uses Wh rather that kWh so need to convert
-        today_w = today_kwh * 1000
+        today_w = today_kwh
 
     try:
         p = influxdb_client.Point("power_watts").tag("host", name).field("consumption", float(watts))
