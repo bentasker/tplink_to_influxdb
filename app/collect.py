@@ -164,7 +164,7 @@ def sendToInflux(write_api, bucket, org, name, watts, today_kwh, timestamp):
         today_w = today_kwh * 1000
 
     try:
-        p = influxdb_client.Point("power_watts").tag("host", name).field("consumption", int(float(watts)))
+        p = influxdb_client.Point("power_watts").tag("host", name).field("consumption", float(watts))
         write_api.write(bucket=bucket, org=org, record=p)
         
         if today_w:        
