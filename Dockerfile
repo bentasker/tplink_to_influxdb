@@ -13,3 +13,9 @@ COPY app /app
 ENV CONF_FILE /config.yml
 
 CMD /app/collect.py
+
+LABEL org.opencontainers.image.authors="github@bentasker.co.uk"
+LABEL org.opencontainers.image.source https://github.com/bentasker/tplink_to_influxdb
+LABEL org.opencontainers.image.title TP-Link Smartsocket to InfluxDB
+LABEL org.opencontainers.image.description Polls power usage information from Tapo and Kasa smartplugs and writes to InfluxDB
+LABEL org.opencontainers.image.licenses="BSD-3-Clause"

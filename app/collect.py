@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 #
-#
+# Poll TP-Link smart-plugs for energy usage readings and send into InfluxDB
 #
 # pip install pyyaml influxdb-client PyP100 python-kasa
 #
+# Copyright (c) 2022 B Tasker
+#
+# Released under BSD-3-Clause License, see LICENSE in the root of the project repo
 #
 
 import asyncio
