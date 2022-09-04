@@ -102,6 +102,30 @@ Fields:
 
 ----
 
+### Running Without Docker
+
+Although `docker` is the easiest way to run the script, it can also be run directly once you've installed a few dependencies.
+
+You'll need `gcc`, `g++` and `make` installed: one of the dependencies is itself dependant on [PycryptoDome](https://www.pycryptodome.org) which includes some bits which need compiling.
+
+```sh
+sudo apt-get install build-essential
+sudo pip install pyyaml influxdb-client PyP100 python-kasa
+```
+
+You'll need to tell the script where to find the config file
+```sh
+export CONF_FILE="/path/to/config"
+```
+
+And then, finally, invoke the script
+```sh
+app/collect.py
+```
+
+
+----
+
 ## Other Stuff
 
 Device Support
