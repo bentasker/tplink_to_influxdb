@@ -1,0 +1,1305 @@
+{
+	"meta": {
+		"chronografVersion": "1.9.3",
+		"sources": {
+			"0": {
+				"name": "http://influxdb:8086",
+				"link": "/chronograf/v1/sources/0"
+			}
+		}
+	},
+	"dashboard": {
+		"id": "19",
+		"cells": [
+			{
+				"i": "a75976a4-b84e-4712-8920-4d58b396a873",
+				"x": 0,
+				"y": 13,
+				"w": 12,
+				"h": 4,
+				"name": ":Device: Daily Cost",
+				"queries": [
+					{
+						"query": "SELECT ((mean(\"watts_today\")/1000)* :kWHCost: / 100) AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT ((mean(\"watts_today\")/1000)* :kWHCost: / 100) AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"0",
+							""
+						],
+						"label": "£",
+						"prefix": "£",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "line",
+				"colors": [
+					{
+						"id": "fd122ae7-fabd-4762-bbeb-347553e0c76d",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "255b2545-d394-43a5-892f-cd3c4d7861e8",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "8d836628-3b5d-4ff7-b2ec-0aae152206e0",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "No results",
+				"noteVisibility": "showWhenNoData",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/a75976a4-b84e-4712-8920-4d58b396a873"
+				}
+			},
+			{
+				"i": "21ca0e4e-1e31-470b-875d-96fefcdd8554",
+				"x": 0,
+				"y": 24,
+				"w": 12,
+				"h": 4,
+				"name": "Monthly cost for :Device: ",
+				"queries": [
+					{
+						"query": "from(bucket: \"Systemstats/rp_720d\")\n  |> range(start: -360d)\n  |> filter(fn: (r) => r._measurement == \"power_watts\")\n  |> filter(fn: (r) => r._field == \"watts_today\")\n  |> filter(fn: (r) => r.host == v.Device)\n  |> aggregateWindow(every: 1d, fn: max)\n  |> aggregateWindow(every: 1mo, fn: sum)\n  |> map(fn: (r) => ({r with _value: \n          ((r._value / 1000.00) * float(v: v.kWHCost))/100.00\n          })\n         )",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "from(bucket: \"Systemstats/rp_720d\")\n  |> range(start: -360d)\n  |> filter(fn: (r) => r._measurement == \"power_watts\")\n  |> filter(fn: (r) => r._field == \"watts_today\")\n  |> filter(fn: (r) => r.host == v.Device)\n  |> aggregateWindow(every: 1d, fn: max)\n  |> aggregateWindow(every: 1mo, fn: sum)\n  |> map(fn: (r) => ({r with _value: \n          ((r._value / 1000.00) * float(v: v.kWHCost))/100.00\n          })\n         )",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "flux"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "£",
+						"prefix": "£",
+						"suffix": "",
+						"base": "raw",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "bar",
+				"colors": [
+					{
+						"id": "4cd53320-186c-4bbb-b2cd-e652d2a2bfad",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "cab51dcf-b9d3-4088-83cd-1a76ca9c9838",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "f0d1c528-8427-49d3-a202-1f8504359b39",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/21ca0e4e-1e31-470b-875d-96fefcdd8554"
+				}
+			},
+			{
+				"i": "3b3a9123-3410-4353-ab2c-0d975657f139",
+				"x": 0,
+				"y": 20,
+				"w": 12,
+				"h": 4,
+				"name": "Monthly usage for :Device:",
+				"queries": [
+					{
+						"query": "from(bucket: \"Systemstats/rp_720d\")\n  |> range(start: -360d)\n  |> filter(fn: (r) => r._measurement == \"power_watts\")\n  |> filter(fn: (r) => r._field == \"watts_today\")\n  |> filter(fn: (r) => r.host == v.Device)\n  |> aggregateWindow(every: 1d, fn: max)\n  |> aggregateWindow(every: 1mo, fn: sum)\n  |> map(fn: (r) => ({r with _value: r._value / 1000.00}))",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "from(bucket: \"Systemstats/rp_720d\")\n  |> range(start: -360d)\n  |> filter(fn: (r) => r._measurement == \"power_watts\")\n  |> filter(fn: (r) => r._field == \"watts_today\")\n  |> filter(fn: (r) => r.host == v.Device)\n  |> aggregateWindow(every: 1d, fn: max)\n  |> aggregateWindow(every: 1mo, fn: sum)\n  |> map(fn: (r) => ({r with _value: r._value / 1000.00}))",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "flux"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "kWh",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "line",
+				"colors": [
+					{
+						"id": "4cd53320-186c-4bbb-b2cd-e652d2a2bfad",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "cab51dcf-b9d3-4088-83cd-1a76ca9c9838",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "f0d1c528-8427-49d3-a202-1f8504359b39",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/3b3a9123-3410-4353-ab2c-0d975657f139"
+				}
+			},
+			{
+				"i": "7cdc4f3c-0ca8-43c2-8389-2ef57bf4dcf2",
+				"x": 0,
+				"y": 17,
+				"w": 12,
+				"h": 3,
+				"name": "Power usage last 90d :Device:",
+				"queries": [
+					{
+						"query": "SELECT max(\"watts_today\") AS \"mean_watts_today\" FROM \"Systemstats\".\"rp_720d\".\"power_watts\" WHERE time > now() - 90d AND \"host\"=:Device: GROUP BY time(1d) FILL(null)",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT max(\"watts_today\") AS \"mean_watts_today\" FROM \"Systemstats\".\"rp_720d\".\"power_watts\" WHERE time > now() - 90d AND \"host\"=:Device: GROUP BY time(1d) FILL(null)",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "bar",
+				"colors": [
+					{
+						"id": "caa00fd6-149f-44ed-9484-c3bbd06b9fd3",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "a34ddddb-6855-43e6-822d-21f7c98a174d",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "31418720-ae14-4d90-adf2-7a38ab3f4c10",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/7cdc4f3c-0ca8-43c2-8389-2ef57bf4dcf2"
+				}
+			},
+			{
+				"i": "3aca310c-4b5f-48ad-a94a-405c5a6af18c",
+				"x": 6,
+				"y": 0,
+				"w": 6,
+				"h": 4,
+				"name": ":Device: Current Consumption Cost",
+				"queries": [
+					{
+						"query": "SELECT (last(\"consumption\")/1000)*:kWHCost:/100 AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"=:Device:",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT (last(\"consumption\")/1000)*:kWHCost:/100 AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"=:Device:",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "£",
+						"suffix": "/hr",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "gauge",
+				"colors": [
+					{
+						"id": "0",
+						"type": "min",
+						"hex": "#00C9FF",
+						"name": "laser",
+						"value": "0"
+					},
+					{
+						"id": "1",
+						"type": "max",
+						"hex": "#9394FF",
+						"name": "comet",
+						"value": "1"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/3aca310c-4b5f-48ad-a94a-405c5a6af18c"
+				}
+			},
+			{
+				"i": "3f8ff009-8edc-427d-aa94-70424aaae0f4",
+				"x": 0,
+				"y": 4,
+				"w": 6,
+				"h": 1,
+				"name": ":Device: Consumed Today",
+				"queries": [
+					{
+						"query": "SELECT last(\"watts_today\")/1000 AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"=:Device:",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT last(\"watts_today\")/1000 AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"=:Device:",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": " kWh",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "single-stat",
+				"colors": [
+					{
+						"id": "base",
+						"type": "text",
+						"hex": "#00C9FF",
+						"name": "laser",
+						"value": "-1000000000000000000"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/3f8ff009-8edc-427d-aa94-70424aaae0f4"
+				}
+			},
+			{
+				"i": "92fe6606-40b6-43af-980a-0be69b23260e",
+				"x": 6,
+				"y": 4,
+				"w": 6,
+				"h": 1,
+				"name": ":Device: Cost Today",
+				"queries": [
+					{
+						"query": "SELECT (last(\"watts_today\")/1000 * :kWHCost:)/100 AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: ",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT (last(\"watts_today\")/1000 * :kWHCost:)/100 AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: ",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "£",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "single-stat",
+				"colors": [
+					{
+						"id": "base",
+						"type": "text",
+						"hex": "#00C9FF",
+						"name": "laser",
+						"value": "-1000000000000000000"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/92fe6606-40b6-43af-980a-0be69b23260e"
+				}
+			},
+			{
+				"i": "a7d21dd4-bc69-4442-b762-fc2e76d7d983",
+				"x": 0,
+				"y": 9,
+				"w": 12,
+				"h": 4,
+				"name": ":Device: Daily Usage",
+				"queries": [
+					{
+						"query": "SELECT mean(\"watts_today\")/1000 AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT mean(\"watts_today\")/1000 AS \"mean_watts_today\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "kWh",
+						"prefix": "",
+						"suffix": "kWh",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "line",
+				"colors": [
+					{
+						"id": "fd122ae7-fabd-4762-bbeb-347553e0c76d",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "255b2545-d394-43a5-892f-cd3c4d7861e8",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "8d836628-3b5d-4ff7-b2ec-0aae152206e0",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "No results",
+				"noteVisibility": "showWhenNoData",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/a7d21dd4-bc69-4442-b762-fc2e76d7d983"
+				}
+			},
+			{
+				"i": "5ec1145d-a63d-45ca-ae76-a4db6c54289c",
+				"x": 0,
+				"y": 5,
+				"w": 6,
+				"h": 4,
+				"name": ":Device: Power Consumption",
+				"queries": [
+					{
+						"query": "SELECT mean(\"consumption\") AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT mean(\"consumption\") AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "W",
+						"prefix": "",
+						"suffix": "wH",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "line",
+				"colors": [
+					{
+						"id": "fd122ae7-fabd-4762-bbeb-347553e0c76d",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "255b2545-d394-43a5-892f-cd3c4d7861e8",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "8d836628-3b5d-4ff7-b2ec-0aae152206e0",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "No results",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/5ec1145d-a63d-45ca-ae76-a4db6c54289c"
+				}
+			},
+			{
+				"i": "2e3dde29-a010-4b59-9d66-59411dd68381",
+				"x": 0,
+				"y": 0,
+				"w": 6,
+				"h": 4,
+				"name": ":Device: Consumption Now",
+				"queries": [
+					{
+						"query": "SELECT last(\"consumption\") AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: ",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT last(\"consumption\") AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: ",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": " W",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "gauge",
+				"colors": [
+					{
+						"id": "0",
+						"type": "min",
+						"hex": "#00C9FF",
+						"name": "laser",
+						"value": "0"
+					},
+					{
+						"id": "1",
+						"type": "max",
+						"hex": "#9394FF",
+						"name": "comet",
+						"value": "5000"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/2e3dde29-a010-4b59-9d66-59411dd68381"
+				}
+			},
+			{
+				"i": "fe71ff9a-91ec-433a-8260-f88043dbd7c5",
+				"x": 6,
+				"y": 5,
+				"w": 6,
+				"h": 4,
+				"name": ":Device: cost/hr at Current Usage",
+				"queries": [
+					{
+						"query": "SELECT ((mean(\"consumption\")/1000) * :kWHCost: ) AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+						"queryConfig": {
+							"database": "",
+							"measurement": "",
+							"retentionPolicy": "",
+							"fields": [],
+							"tags": {},
+							"groupBy": {
+								"time": "",
+								"tags": []
+							},
+							"areTagsAccepted": false,
+							"rawText": "SELECT ((mean(\"consumption\")/1000) * :kWHCost: ) AS \"mean_consumption\" FROM \"Systemstats\".\"autogen\".\"power_watts\" WHERE time > :dashboardTime: AND time < :upperDashboardTime: AND \"host\"= :Device: GROUP BY time(:interval:) FILL(null)",
+							"range": null,
+							"shifts": null
+						},
+						"source": "",
+						"type": "influxql"
+					}
+				],
+				"axes": {
+					"x": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "Pence",
+						"prefix": "",
+						"suffix": "p",
+						"base": "10",
+						"scale": "linear"
+					},
+					"y2": {
+						"bounds": [
+							"",
+							""
+						],
+						"label": "",
+						"prefix": "",
+						"suffix": "",
+						"base": "10",
+						"scale": "linear"
+					}
+				},
+				"type": "line",
+				"colors": [
+					{
+						"id": "fd122ae7-fabd-4762-bbeb-347553e0c76d",
+						"type": "scale",
+						"hex": "#31C0F6",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "255b2545-d394-43a5-892f-cd3c4d7861e8",
+						"type": "scale",
+						"hex": "#A500A5",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					},
+					{
+						"id": "8d836628-3b5d-4ff7-b2ec-0aae152206e0",
+						"type": "scale",
+						"hex": "#FF7E27",
+						"name": "Nineteen Eighty Four",
+						"value": "0"
+					}
+				],
+				"legend": {},
+				"tableOptions": {
+					"verticalTimeAxis": true,
+					"sortBy": {
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					},
+					"wrapping": "truncate",
+					"fixFirstColumn": true
+				},
+				"fieldOptions": [
+					{
+						"internalName": "time",
+						"displayName": "",
+						"visible": true
+					}
+				],
+				"timeFormat": "MM/DD/YYYY HH:mm:ss",
+				"decimalPlaces": {
+					"isEnforced": true,
+					"digits": 2
+				},
+				"note": "No results",
+				"noteVisibility": "default",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/cells/fe71ff9a-91ec-433a-8260-f88043dbd7c5"
+				}
+			}
+		],
+		"templates": [
+			{
+				"tempVar": ":Device:",
+				"values": [
+					{
+						"value": "desk-plug",
+						"type": "tagValue",
+						"selected": true
+					}
+				],
+				"id": "bbc7a589-6a84-44c6-bf16-43f5e4b54981",
+				"type": "tagValues",
+				"label": "",
+				"query": {
+					"influxql": "SHOW TAG VALUES ON :database: FROM :measurement: WITH KEY=:tagKey:",
+					"db": "Systemstats",
+					"measurement": "power_watts",
+					"tagKey": "host",
+					"fieldKey": ""
+				},
+				"sourceID": "dynamic",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/templates/bbc7a589-6a84-44c6-bf16-43f5e4b54981"
+				}
+			},
+			{
+				"tempVar": ":kWHCost:",
+				"values": [],
+				"id": "966761a2-7b77-4081-94ea-184447b3c4d0",
+				"type": "text",
+				"label": "",
+				"sourceID": "dynamic",
+				"links": {
+					"self": "/chronograf/v1/dashboards/19/templates/966761a2-7b77-4081-94ea-184447b3c4d0"
+				}
+			}
+		],
+		"name": "Electricity Consumption (Device)",
+		"organization": "default",
+		"links": {
+			"self": "/chronograf/v1/dashboards/19",
+			"cells": "/chronograf/v1/dashboards/19/cells",
+			"templates": "/chronograf/v1/dashboards/19/templates"
+		}
+	}
+}
