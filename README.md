@@ -10,6 +10,8 @@ In effect, this is an amalgamated and tidied version of scripts that I've previo
 - [TP-Link Kasa polling script](https://www.bentasker.co.uk/posts/blog/house-stuff/739-monitoring-our-electricity-usage-with-influxdb.html#MonitoredPlugSockets)
 - [TP-Link Tapo polling script](https://www.bentasker.co.uk/posts/blog/house-stuff/how-much-more-energy-efficient-is-eco-mode-on-a-dish-washer.html#tapo)
 
+A detailed example of usage can be seen in ["Energy usage Monitoring With TP-Link Smart Sockets and InfluxDB"](https://www.bentasker.co.uk/posts/blog/house-stuff/capturing-energy-usage-info-with-tapo-kasa-and-influxdb.html)
+
 ----
 
 ## Usage
