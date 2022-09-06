@@ -143,35 +143,43 @@ def poll_tapo(ip, user, passw):
 def sendPointsToDest(dest, points):
     ''' Iterate through the collected stats and write them out to InfluxDB
     '''
+    
+    # Initialize
     write_api = dest['conn'].write_api(write_options=SYNCHRONOUS)
+    points_buffer = []
+    
     for point in points:
+             
+        # Build a point    
+        p = influxdb_client.Point("power_watts").tag("host", point).field("consumption", float(points[point]['now_usage_w']))
+        points_buffer.append(p)
+        
+        
+        # If we've captured usage, add a point for that
+        if points[point]['today_usage']:
+            p = influxdb_client.Point("power_watts").tag("host", point).field("watts_today", int(float(points[point]['today_usage'])))
+            points_buffer.append(p)
+        
+        
+    # Be odd if it wasn't, but still
+    if len(points_buffer) > 0:
+        
         res = sendToInflux(write_api,
                      dest['bucket'],
                      dest['org'],
-                     point, 
-                     points[point]['now_usage_w'], 
-                     points[point]['today_usage'],
-                     points[point]['time']
+                     points_buffer
                      )
         if not res:
-            print(f"Failed to send point to {dest['name']}")
+            print(f"Failed to send points to {dest['name']}")
+        else:
+            print(f"Wrote {len(points_buffer)} points to {dest['name']}")
 
 
-def sendToInflux(write_api, bucket, org, name, watts, today_kwh, timestamp):
+def sendToInflux(write_api, bucket, org, points_buffer):
     ''' Take a set of values, and send them on to InfluxDB
     '''
-    today_w = False
-    if today_kwh:
-        today_w = today_kwh
-
     try:
-        p = influxdb_client.Point("power_watts").tag("host", name).field("consumption", float(watts))
-        write_api.write(bucket=bucket, org=org, record=p)
-        
-        if today_w:        
-            p = influxdb_client.Point("power_watts").tag("host", name).field("watts_today", int(float(today_w)))
-            write_api.write(bucket=bucket, org=org, record=p)
-
+        write_api.write(bucket, org, points_buffer)
         return True
     except:
         return False
