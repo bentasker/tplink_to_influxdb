@@ -90,9 +90,22 @@ def main():
                 "time" : start_time
             }
         
-    # Iterate through the InfluxDB connections and send the data over
-    for influx in influxes:
-        sendPointsToDest(influx, stats)
+    # Build a buffer of points
+    points_buffer = buildPointsBuffer(stats)
+    
+    if len(points_buffer) > 0:
+        # Iterate through the InfluxDB connections and send the data over
+        for dest in influxes:
+            write_api = dest['conn'].write_api(write_options=SYNCHRONOUS)
+            res = sendToInflux(write_api,
+                        dest['bucket'],
+                        dest['org'],
+                        points_buffer
+                        )
+            if not res:
+                print(f"Failed to send points to {dest['name']}")
+            else:
+                print(f"Wrote {len(points_buffer)} points to {dest['name']}")
 
         
 def poll_kasa(ip):
@@ -140,12 +153,12 @@ def poll_tapo(ip, user, passw):
     return now_usage_w, today_usage
     
 
-def sendPointsToDest(dest, points):
+def buildPointsBuffer(points):
     ''' Iterate through the collected stats and write them out to InfluxDB
     '''
     
     # Initialize
-    write_api = dest['conn'].write_api(write_options=SYNCHRONOUS)
+
     points_buffer = []
     
     for point in points:
@@ -160,19 +173,7 @@ def sendPointsToDest(dest, points):
             p = influxdb_client.Point("power_watts").tag("host", point).field("watts_today", int(float(points[point]['today_usage']))).time(points[point]['time'])
             points_buffer.append(p)
         
-        
-    # Be odd if it wasn't, but still
-    if len(points_buffer) > 0:
-        
-        res = sendToInflux(write_api,
-                     dest['bucket'],
-                     dest['org'],
-                     points_buffer
-                     )
-        if not res:
-            print(f"Failed to send points to {dest['name']}")
-        else:
-            print(f"Wrote {len(points_buffer)} points to {dest['name']}")
+    return points_buffer
 
 
 def sendToInflux(write_api, bucket, org, points_buffer):
