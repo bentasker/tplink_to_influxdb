@@ -151,13 +151,13 @@ def sendPointsToDest(dest, points):
     for point in points:
              
         # Build a point    
-        p = influxdb_client.Point("power_watts").tag("host", point).field("consumption", float(points[point]['now_usage_w']))
+        p = influxdb_client.Point("power_watts").tag("host", point).field("consumption", float(points[point]['now_usage_w'])).time(points[point]['time'])
         points_buffer.append(p)
         
         
         # If we've captured usage, add a point for that
         if points[point]['today_usage']:
-            p = influxdb_client.Point("power_watts").tag("host", point).field("watts_today", int(float(points[point]['today_usage'])))
+            p = influxdb_client.Point("power_watts").tag("host", point).field("watts_today", int(float(points[point]['today_usage']))).time(points[point]['time'])
             points_buffer.append(p)
         
         
