@@ -115,9 +115,12 @@ def poll_kasa(ip):
     '''
     
     # Connect to the plug and receive stats
-    p = SmartPlug(ip)
-    asyncio.run(p.update())
-        
+    try:
+        p = SmartPlug(ip)
+        asyncio.run(p.update())
+    except:
+        return False, False
+            
     # emeter_today relies on external connectivity - it uses NTP to keep track of time
     # you need to allow UDP 123 outbound if you're restricting the plug's external connectivity
     # otherwise you'll get 0 or 0.001 back instead of the real value
