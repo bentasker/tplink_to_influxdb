@@ -4,7 +4,7 @@
 #
 # pip install pyyaml influxdb-client PyP100 python-kasa
 #
-# Copyright (c) 2022 B Tasker
+# Copyright (c) 2023 B Tasker
 #
 # Released under BSD-3-Clause License, see LICENSE in the root of the project repo
 #

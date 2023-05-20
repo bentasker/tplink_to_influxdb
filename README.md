@@ -170,7 +170,7 @@ Given the choice, personally, I'd buy Kasa every time.
 
 ### License
 
-Copyright (c) 2022 Ben Tasker.
+Copyright (c) 2023 Ben Tasker.
 
 Released under [BSD-3-Clause](LICENSE)
 
