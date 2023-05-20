@@ -1,5 +1,12 @@
 ---
 
+poller:
+   # If true, the script won't exit and will instead poll in
+   # an infinite loop
+   persist: false
+   # Interval in seconds between polls
+   interval: 20
+
 
 # List tapo devices
 tapo:
