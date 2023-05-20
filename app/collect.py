@@ -61,8 +61,24 @@ def main():
                              "org" : influx["org"]
                              })
 
-    # Trigger the poller
-    do_work(config, influxes)
+    
+    # Should we be running an infinite loop?
+    persist = False
+    if "poller" in config and "persist" in config['poller']:
+        if "interval" not in config["poller"]:
+            print("Err: Persistent mode enabled, but interval not defined")
+        else:
+            persist = True
+        
+    if not persist:
+        # Trigger the poller as a one-shot thing
+        do_work(config, influxes)
+        return
+    
+    # Otherwise, set up a loop and poll periodically
+    while True:
+        do_work(config, influxes)
+        time.sleep(int(config["poller"]["interval"]))
 
 
 def do_work(config, influxes):
