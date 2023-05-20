@@ -64,6 +64,10 @@ def main():
     stats = {}
     start_time = time.time_ns()
 
+    if "kasa" not in config and "tapo" not in config:
+        print("Error: Neither kasa or tapo devices have been defined")
+        sys.exit(1)
+
     if "kasa" in config:
         for kasa in config["kasa"]["devices"]:
             now_usage_w, today_usage = poll_kasa(kasa['ip'])
