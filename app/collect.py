@@ -45,7 +45,7 @@ def main():
     config = load_config()
     if not config:
         sys.exit(1)
-    
+
     # Create the InfluxDB clients
     influxes = []
 
@@ -61,6 +61,14 @@ def main():
                              "org" : influx["org"]
                              })
 
+    # Trigger the poller
+    do_work(config, influxes)
+
+
+def do_work(config, influxes):
+    ''' Trigger polls of the various devices and push resulting metrics
+        
+    '''
     stats = {}
     start_time = time.time_ns()
 
