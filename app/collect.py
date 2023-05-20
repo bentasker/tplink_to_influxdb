@@ -64,31 +64,33 @@ def main():
     stats = {}
     start_time = time.time_ns()
 
-    for kasa in config["kasa"]["devices"]:
-        now_usage_w, today_usage = poll_kasa(kasa['ip'])
-        if now_usage_w is False:
-            print(f"Failed to communicate with device {kasa['name']}")
-            continue
-        
-        print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
-        stats[kasa['name']] = {
-                "today_usage" : today_usage,
-                "now_usage_w" : now_usage_w,
-                "time" : start_time
-            }
-
-    for tapo in config["tapo"]["devices"]:
-        now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
-        if now_usage_w is False:
-            print(f"Failed to communicate with device {tapo['name']}")
-            continue
-        
-        print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
-        stats[tapo['name']] = {
-                "today_usage" : today_usage,
-                "now_usage_w" : now_usage_w,
-                "time" : start_time
-            }
+    if "kasa" in config:
+        for kasa in config["kasa"]["devices"]:
+            now_usage_w, today_usage = poll_kasa(kasa['ip'])
+            if now_usage_w is False:
+                print(f"Failed to communicate with device {kasa['name']}")
+                continue
+            
+            print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+            stats[kasa['name']] = {
+                    "today_usage" : today_usage,
+                    "now_usage_w" : now_usage_w,
+                    "time" : start_time
+                }
+            
+    if "tapo" in config:
+        for tapo in config["tapo"]["devices"]:
+            now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
+            if now_usage_w is False:
+                print(f"Failed to communicate with device {tapo['name']}")
+                continue
+            
+            print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+            stats[tapo['name']] = {
+                    "today_usage" : today_usage,
+                    "now_usage_w" : now_usage_w,
+                    "time" : start_time
+                }
         
     # Build a buffer of points
     points_buffer = buildPointsBuffer(stats)
