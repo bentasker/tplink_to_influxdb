@@ -1,5 +1,6 @@
 FROM python:3-alpine
 
+ENV PYTHONUNBUFFERED=1
 # Install deps
 RUN apk add -U g++ gcc make \
 && pip install pyyaml influxdb-client PyP100 python-kasa \
