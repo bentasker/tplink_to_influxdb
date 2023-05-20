@@ -19,7 +19,7 @@ A detailed example of usage can be seen in ["Energy usage Monitoring With TP-Lin
 Configuration
 ---------------
 
-Configuration is achieved via a YAML file, there's an example to get you started in [examples/config.yml](examples/config.yml)
+Configuration is achieved via a YAML file, there's an example to get you started in [example/config.yml](example/config.yml)
 
 The config file contains 3 sections
 
