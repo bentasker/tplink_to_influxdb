@@ -21,13 +21,24 @@ Configuration
 
 Configuration is achieved via a YAML file, there's an example to get you started in [example/config.yml](example/config.yml)
 
-The config file contains 3 sections
+The config file contains 4 sections
 
+- poller
 - tapo
 - kasa
 - influxdb
 
-Each section can have multiple devices:
+The `poller` section contains configuration information for the polling script itself
+```yaml
+poller:
+    # If true, run in an infinite loop
+    persist: true
+    # Interval in seconds between runs
+    interval: 20
+
+```
+
+Each of the remaining sections can have multiple devices:
 ```yaml
 tapo:
     # Tapo devices require that you log in with the credentials
@@ -75,7 +86,7 @@ Outputs are written using the v2 API, so the upstream can be any of the followin
 
 ### Invocation
 
-The container is currently designed to be invoked via cron.
+The container is currently designed to be invoked via cron (although [utilities/tp-link-to-influxdb#4](https://projects.bentasker.co.uk/gils_projects/issue/utilities/tp-link-to-influxdb/4.html) added the option of using a persistent container with an internal timer)
 
 The configuration file needs to be exported into the container at `/config.yml` (if for some reason you wish to override this, you can use the environment variable `CONF_FILE` to tell the script where to find the config file)
 
