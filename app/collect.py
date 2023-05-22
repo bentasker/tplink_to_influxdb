@@ -117,7 +117,11 @@ def do_work(config, influxes):
                 print(f"Failed to communicate with device {tapo['name']}")
                 continue
             
-            print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+            if today_usage:
+                print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+            else:
+                print(f"Plug: {tapo['name']} using {now_usage_w}W, today: Not Supplied")
+                
             stats[tapo['name']] = {
                     "today_usage" : today_usage,
                     "now_usage_w" : now_usage_w,
@@ -188,7 +192,10 @@ def poll_tapo(ip, user, passw):
     except:
         return False, False
 
-    today_usage = usage_dict["result"]["today_energy"]
+    today_usage = False
+    if "today_energy" in usage_dict["result"]:
+        today_usage = usage_dict["result"]["today_energy"]
+        
     now_usage_w = usage_dict["result"]["current_power"] / 1000
     
     return now_usage_w, today_usage
