@@ -99,7 +99,11 @@ def do_work(config, influxes):
                 print(f"Failed to communicate with device {kasa['name']}")
                 continue
             
-            print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+            if today_usage:
+                print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+            else:
+                print(f"Plug: {kasa['name']} using {now_usage_w}W, today: Not Supplied")
+                
             stats[kasa['name']] = {
                     "today_usage" : today_usage,
                     "now_usage_w" : now_usage_w,
@@ -158,8 +162,12 @@ def poll_kasa(ip):
     # See https://github.com/home-assistant/core/issues/45436#issuecomment-766454897
     #
     
-    # Convert from kWh to Wh
-    today_usage = p.emeter_today * 1000
+    # See whether the socket returned daily readings
+    today_usage = False
+    if p.emeter_today:
+        # Convert from kWh to Wh
+        today_usage = p.emeter_today * 1000
+        
     usage_dict = p.emeter_realtime
     
     # Convert to watts
