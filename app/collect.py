@@ -175,7 +175,12 @@ def poll_kasa(ip):
     usage_dict = p.emeter_realtime
     
     # Convert to watts
-    now_usage_w = usage_dict["power_mw"] / 1000
+    try:
+        now_usage_w = usage_dict["power_mw"] / 1000
+    except:
+        # An error occurred, let the caller handle it
+        print(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
+        return False, False
 
     return now_usage_w, today_usage
 
@@ -192,11 +197,19 @@ def poll_tapo(ip, user, passw):
     except:
         return False, False
 
+    if not usage_dict or "result" not in usage_dict:
+        # We failed to elicit a response
+        return False, False
+
     today_usage = False
     if "today_energy" in usage_dict["result"]:
         today_usage = usage_dict["result"]["today_energy"]
-        
-    now_usage_w = usage_dict["result"]["current_power"] / 1000
+       
+    try:
+        now_usage_w = usage_dict["result"]["current_power"] / 1000
+    except:
+        print(f'Err: failed to calculate {usage_dict["result"]["current_power"]}  / 1000')
+        return False, False
     
     return now_usage_w, today_usage
     
