@@ -189,16 +189,58 @@ def poll_tapo(ip, user, passw):
     ''' Poll a TP-Link Tapo smartplug
     '''
     
+    # As of https://github.com/bentasker/tplink_to_influxdb/issues/3 it's possible
+    # that the user might be using a similar but slightly different library with
+    # better support for new plugs
+    #
+    # If the newer module ends up in pip then will refactor to remove support for the old
+    #
+    
+    use_old_proto = False
     try:
-        p110 = PyP110.P110(ip, user, passw)
-        p110.handshake() #Creates the cookies required for further methods
-        p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods        
+        # Try using the new signature to communicate with an older device
+        # if this fails, we'll fall through to using the invocation that works
+        # with both libraries and newer devices (if the new library is in use)
+        p110 = PyP110.P110(ip, user, passw, preferred_protocol="old")
+        # The new library runs handshake/login automatically, so we don't need 
+        # to invoke those if we know we're using it
+        use_old_proto = True
+    except:
+        pass
+    
+    if not use_old_proto:
+        try:
+            p110 = PyP110.P110(ip, user, passw)
+            p110.handshake() #Creates the cookies required for further methods
+            p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods                    
+        except:
+            return False, False
+
+    # If we got this far, we've connected to the device successfully
+    # get the readings
+    try:
         usage_dict = p110.getEnergyUsage()
     except:
+        print("Failed at reading stage")
         return False, False
 
-    if not usage_dict or "result" not in usage_dict:
+    # The response to getEnergyUsage differs between the two libraries. The older library
+    # nested things under a result attribute, the new one does not.
+    
+    # Check that we got *something* back
+    if not usage_dict:
         # We failed to elicit a response
+        return False, False
+
+    # Now figure out whether it's a new format response or old
+    if "result" not in usage_dict and "today_energy" in usage_dict:
+        # It's new style. Map it over to the new format
+        d = { "result" : usage_dict }
+        usage_dict = d
+        
+    # Finally, double check that the dict, whether re-mapped or not
+    # has a result attribute
+    if "result" not in usage_dict:
         return False, False
 
     today_usage = False
