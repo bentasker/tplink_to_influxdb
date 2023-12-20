@@ -136,7 +136,6 @@ And then, finally, invoke the script
 app/collect.py
 ```
 
-
 ----
 
 ## Other Stuff
@@ -153,6 +152,25 @@ You can check whether your device is supported by looking at the support matrix 
 
 
 ----
+
+
+Authentication Mechanism Update
+---------------------------------
+
+In v1.2.1 of the Tapo firmware, TP-Link changed the way that authentication happens. Devices that have received this firmware update no longer work with the version of `PyP100` in PyPi.
+
+There is, however [a fork](https://github.com/almottier/TapoP100) and [utilities/tp-link-to-influxdb#7](https://projects.bentasker.co.uk/gils_projects/issue/utilities/tp-link-to-influxdb/7.html) adds support for using it.
+
+In order to install and use a copy of the forked library, run
+```sh
+pip3 install git+https://github.com/almottier/TapoP100.git@main
+
+export CONF_FILE="/path/to/config"
+./app/collect.py
+```
+
+This *should* work with devices running new firmware as well as those that haven't been updated.
+
 
 Tapo vs Kasa
 ---------------
