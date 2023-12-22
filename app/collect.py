@@ -23,6 +23,7 @@ from PyP100 import PyP110
 
 CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
 log = logging.getLogger(__name__)
+#logging.basicConfig(level=logging.DEBUG)
 
 def load_config():
     ''' Read the config file
@@ -120,11 +121,21 @@ def do_work(config, influxes):
         tapo_log.setLevel(logging.CRITICAL)
                 
         for tapo in config["tapo"]["devices"]:
-            now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
+            # Set a sane default for auth mode if it's not been specified
+            if "auth" not in tapo:
+                tapo['auth'] = "all"
+                
+            now_usage_w, today_usage = poll_tapo(
+                tapo['ip'], 
+                config["tapo"]["user"], 
+                config["tapo"]["passw"],
+                tapo['auth']
+                )
+            
             if now_usage_w is False:
                 print(f"Failed to communicate with device {tapo['name']}")
                 continue
-            
+
             if today_usage:
                 print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
             else:
@@ -210,7 +221,7 @@ def poll_tapo_newauth(ip, user, passw):
     
     - new PyP100 fork and devices running firmware >= 1.2.1
     - original PyP100 module and devices running firmware < 1.2.1
-    
+
     '''
     
     # Start by seeing whether we can force the auth type - this'll only work for the
@@ -271,19 +282,27 @@ def poll_tapo_old_auth(ip, user, passw):
     return usage_dict
     
     
-def poll_tapo(ip, user, passw):
+def poll_tapo(ip, user, passw, auth_mode):
     ''' Poll a TP-Link Tapo smartplug
+    
+    auth_mode should be one of
+    
+    - all: try modes in turn
+    - package_defaults: only try the package defaults (new for almottier, normal for PyPi)
+    - almottier_old: only try old auth via the almottier fork
+    
+    Note: setting almottier_old when using the PyPi P100 will fail    
     '''
     
-    # As of https://github.com/bentasker/tplink_to_influxdb/issues/3 it's possible
-    # that the user might be using a similar but slightly different library with
-    # better support for new plugs
-    #
-    # If the newer module ends up in pip then will refactor to remove support for the old
-    #
+    log.debug(f"Auth mode is set to {auth_mode}")
 
-    usage_dict = poll_tapo_newauth(ip, user, passw)
-    if not usage_dict:
+    # If the provided auth_mode allows it, try the package 
+    usage_dict = False
+    if auth_mode != 'almottier_old':
+        usage_dict = poll_tapo_newauth(ip, user, passw)
+        
+
+    if not usage_dict and auth_mode != 'package_defaults':
         # Polling failed, try old auth mechanism
         usage_dict = poll_tapo_old_auth(ip, user, passw)
         
