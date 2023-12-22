@@ -11,6 +11,7 @@
 
 import asyncio
 import influxdb_client
+import logging
 import os
 import sys
 import time
@@ -21,6 +22,7 @@ from kasa import SmartPlug
 from PyP100 import PyP110
 
 CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
+log = logging.getLogger(__name__)
 
 def load_config():
     ''' Read the config file
@@ -66,7 +68,7 @@ def main():
     persist = False
     if "poller" in config and "persist" in config['poller']:
         if "interval" not in config["poller"]:
-            print("Err: Persistent mode enabled, but interval not defined")
+            log.error("Err: Persistent mode enabled, but interval not defined")
         else:
             persist = True
         
@@ -185,6 +187,84 @@ def poll_kasa(ip):
     return now_usage_w, today_usage
 
 
+
+def poll_tapo_newauth(ip, user, passw):
+    ''' Attempt to poll a TP-Link Tapo smartplug using the default auth mechanism
+    
+    If the original PyP100 module is in use this will be the "old" auth mechanism 
+    which doesn't work with devices running firmware version >= 1.2.1
+    
+    If the new PyP100 fork is in use, this will be the new KLAP mechanism which works
+    with firmware version >= 1.2.1. However, it will fail for devices running older
+    firmware
+    
+    utilities/tp-link-to-influxdb#7
+    
+    This function is expected to work with
+    
+    - new PyP100 fork and devices running firmware >= 1.2.1
+    - original PyP100 module and devices running firmware < 1.2.1
+    
+    '''
+    
+    # Start by seeing whether we can force the auth type - this'll only work for the
+    # new fork, so if we get an exception we just don't force it
+    try:
+        p110 = PyP110.P110(ip, user, passw, preferred_protocol="new")
+                
+    except:
+        p110 = PyP110.P110(ip, user, passw)
+    
+    try:
+        p110.handshake() #Creates the cookies required for further methods
+        p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods
+    except Exception as e:
+        log.debug(f"NewAuth Failed at login stage {e}")
+        return False
+    
+    # If we got this far, we've connected to the device successfully
+    # get the readings
+    try:
+        usage_dict = p110.getEnergyUsage()
+    except Exception as e:
+        log.debug(f"NewAuth Failed at reading stage {e}")
+        return False
+    
+    
+    return usage_dict
+    
+
+def poll_tapo_old_auth(ip, user, passw):
+    ''' Try polling a TP-Link tapo device forcing "old" authentication.
+    
+    This will only work if the new PyP100 fork is in use - otherwise the module
+    will complain about invalid variables
+    
+    This function is expected to work with
+    
+    - new PyP100 fork and devices running firmware < 1.2.1
+    
+    '''
+    
+    try:
+        p110 = PyP110.P110(ip, user, passw, preferred_protocol="old")
+        p110.handshake() #Creates the cookies required for further methods
+        p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods        
+    except Exception as e:
+        log.debug(f"OldAuth Failed at login stage {e}")
+        return False
+
+    # If we got this far, we've connected to the device successfully
+    # get the readings
+    try:
+        usage_dict = p110.getEnergyUsage()
+    except Exception as e:
+        log.debug(f"OldAuth Failed at reading stage {e}")
+        return False
+    
+    return usage_dict
+    
+    
 def poll_tapo(ip, user, passw):
     ''' Poll a TP-Link Tapo smartplug
     '''
@@ -195,34 +275,16 @@ def poll_tapo(ip, user, passw):
     #
     # If the newer module ends up in pip then will refactor to remove support for the old
     #
-    
-    use_old_proto = False
-    try:
-        # Try using the new signature to communicate with an older device
-        # if this fails, we'll fall through to using the invocation that works
-        # with both libraries and newer devices (if the new library is in use)
-        p110 = PyP110.P110(ip, user, passw, preferred_protocol="old")
-        # The new library runs handshake/login automatically, so we don't need 
-        # to invoke those if we know we're using it
-        use_old_proto = True
-    except:
-        pass
-    
-    if not use_old_proto:
-        try:
-            p110 = PyP110.P110(ip, user, passw)
-            p110.handshake() #Creates the cookies required for further methods
-            p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods                    
-        except:
-            return False, False
 
-    # If we got this far, we've connected to the device successfully
-    # get the readings
-    try:
-        usage_dict = p110.getEnergyUsage()
-    except:
-        print("Failed at reading stage")
+    usage_dict = poll_tapo_newauth(ip, user, passw)
+    if not usage_dict:
+        # Polling failed, try old auth mechanism
+        usage_dict = poll_tapo_old_auth(ip, user, passw)
+        
+    if not usage_dict:
+        # We still haven't got anything - device may be unreachable
         return False, False
+    
 
     # The response to getEnergyUsage differs between the two libraries. The older library
     # nested things under a result attribute, the new one does not.
