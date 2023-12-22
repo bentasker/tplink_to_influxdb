@@ -136,7 +136,6 @@ And then, finally, invoke the script
 app/collect.py
 ```
 
-
 ----
 
 ## Other Stuff
@@ -153,6 +152,53 @@ You can check whether your device is supported by looking at the support matrix 
 
 
 ----
+
+
+Tapo Authentication Mechanism Update
+--------------------------------------
+
+In v1.2.1 of the Tapo firmware, TP-Link changed the way that authentication happens. Devices that have received this firmware update no longer work with the version of `PyP100` in PyPi.
+
+There is, however [a fork](https://github.com/almottier/TapoP100) and [utilities/tp-link-to-influxdb#7](https://projects.bentasker.co.uk/gils_projects/issue/utilities/tp-link-to-influxdb/7.html) adds support for using it.
+
+In order to install and use a copy of the forked library, run
+```sh
+pip3 install git+https://github.com/almottier/TapoP100.git@main
+
+export CONF_FILE="/path/to/config"
+./app/collect.py
+```
+
+This *should* work with devices running new firmware as well as those that haven't been updated. 
+
+However, the mixed mode support is implemented at a slight efficiency cost: it's necessary to try both auth modes to find one that succeeds.
+
+It's therefore possible to define, in config, which should be used:
+```yaml
+    devices:
+        - 
+            name: "big-fridge"
+            ip : 192.168.3.153
+            auth: "almottier_old"
+         
+        -
+            name: "slow-cooker"
+            ip: 192.168.3.164
+            auth: "package_defaults"
+            
+        -
+            name: "washing-machine"
+            ip: 192.168.3.167
+            auth: "all"
+
+```
+
+Valid values to `auth` are:
+
+- `all`: the default, will try each in turn
+- `package_defaults`: use whatever the default is for the module in use (`new` for almottier's fork, old for `PyPi`)
+- `almottier_old`: Use the `old` protocol with the Almottier fork - will fail if the PyPi version is in use instead
+
 
 Tapo vs Kasa
 ---------------

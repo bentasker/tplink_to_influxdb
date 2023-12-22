@@ -11,6 +11,7 @@
 
 import asyncio
 import influxdb_client
+import logging
 import os
 import sys
 import time
@@ -21,6 +22,8 @@ from kasa import SmartPlug
 from PyP100 import PyP110
 
 CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
+log = logging.getLogger(__name__)
+#logging.basicConfig(level=logging.DEBUG)
 
 def load_config():
     ''' Read the config file
@@ -66,7 +69,7 @@ def main():
     persist = False
     if "poller" in config and "persist" in config['poller']:
         if "interval" not in config["poller"]:
-            print("Err: Persistent mode enabled, but interval not defined")
+            log.error("Err: Persistent mode enabled, but interval not defined")
         else:
             persist = True
         
@@ -111,12 +114,28 @@ def do_work(config, influxes):
                 }
             
     if "tapo" in config:
+        # Override the tapo logging level - the module calls logger.exception() if it fails to login to a device
+        # The problem with that is, there are now 2 possible (and incompatible) auth schemes, so login may or may
+        # not work - we don't really want log noise from something we're having to handle.
+        tapo_log = logging.getLogger('PyP100')
+        tapo_log.setLevel(logging.CRITICAL)
+                
         for tapo in config["tapo"]["devices"]:
-            now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
+            # Set a sane default for auth mode if it's not been specified
+            if "auth" not in tapo:
+                tapo['auth'] = "all"
+                
+            now_usage_w, today_usage = poll_tapo(
+                tapo['ip'], 
+                config["tapo"]["user"], 
+                config["tapo"]["passw"],
+                tapo['auth']
+                )
+            
             if now_usage_w is False:
                 print(f"Failed to communicate with device {tapo['name']}")
                 continue
-            
+
             if today_usage:
                 print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
             else:
@@ -185,20 +204,130 @@ def poll_kasa(ip):
     return now_usage_w, today_usage
 
 
-def poll_tapo(ip, user, passw):
-    ''' Poll a TP-Link Tapo smartplug
+
+def poll_tapo_newauth(ip, user, passw):
+    ''' Attempt to poll a TP-Link Tapo smartplug using the default auth mechanism
+    
+    If the original PyP100 module is in use this will be the "old" auth mechanism 
+    which doesn't work with devices running firmware version >= 1.2.1
+    
+    If the new PyP100 fork is in use, this will be the new KLAP mechanism which works
+    with firmware version >= 1.2.1. However, it will fail for devices running older
+    firmware
+    
+    utilities/tp-link-to-influxdb#7
+    
+    This function is expected to work with
+    
+    - new PyP100 fork and devices running firmware >= 1.2.1
+    - original PyP100 module and devices running firmware < 1.2.1
+
+    '''
+    
+    # Start by seeing whether we can force the auth type - this'll only work for the
+    # new fork, so if we get an exception we just don't force it
+    try:
+        p110 = PyP110.P110(ip, user, passw, preferred_protocol="new")
+                
+    except:
+        p110 = PyP110.P110(ip, user, passw)
+    
+    try:
+        p110.handshake() #Creates the cookies required for further methods
+        p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods
+    except Exception as e:
+        log.debug(f"NewAuth Failed at login stage {e}")
+        return False
+    
+    # If we got this far, we've connected to the device successfully
+    # get the readings
+    try:
+        usage_dict = p110.getEnergyUsage()
+    except Exception as e:
+        log.debug(f"NewAuth Failed at reading stage {e}")
+        return False
+    
+    
+    return usage_dict
+    
+
+def poll_tapo_old_auth(ip, user, passw):
+    ''' Try polling a TP-Link tapo device forcing "old" authentication.
+    
+    This will only work if the new PyP100 fork is in use - otherwise the module
+    will complain about invalid variables
+    
+    This function is expected to work with
+    
+    - new PyP100 fork and devices running firmware < 1.2.1
+    
     '''
     
     try:
-        p110 = PyP110.P110(ip, user, passw)
+        p110 = PyP110.P110(ip, user, passw, preferred_protocol="old")
         p110.handshake() #Creates the cookies required for further methods
         p110.login() #Sends credentials to the plug and creates AES Key and IV for further methods        
+    except Exception as e:
+        log.debug(f"OldAuth Failed at login stage {e}")
+        return False
+
+    # If we got this far, we've connected to the device successfully
+    # get the readings
+    try:
         usage_dict = p110.getEnergyUsage()
-    except:
+    except Exception as e:
+        log.debug(f"OldAuth Failed at reading stage {e}")
+        return False
+    
+    return usage_dict
+    
+    
+def poll_tapo(ip, user, passw, auth_mode):
+    ''' Poll a TP-Link Tapo smartplug
+    
+    auth_mode should be one of
+    
+    - all: try modes in turn
+    - package_defaults: only try the package defaults (new for almottier, normal for PyPi)
+    - almottier_old: only try old auth via the almottier fork
+    
+    Note: setting almottier_old when using the PyPi P100 will fail    
+    '''
+    
+    log.debug(f"Auth mode is set to {auth_mode}")
+
+    # If the provided auth_mode allows it, try the package 
+    usage_dict = False
+    if auth_mode != 'almottier_old':
+        usage_dict = poll_tapo_newauth(ip, user, passw)
+        
+
+    if not usage_dict and auth_mode != 'package_defaults':
+        # Polling failed, try old auth mechanism
+        usage_dict = poll_tapo_old_auth(ip, user, passw)
+        
+    if not usage_dict:
+        # We still haven't got anything - device may be unreachable
+        return False, False
+    
+
+    # The response to getEnergyUsage differs between the two libraries. The older library
+    # nested things under a result attribute, the new one does not.
+    
+    # Check that we got *something* back
+    if not usage_dict:
+        # We failed to elicit a response
         return False, False
 
-    if not usage_dict or "result" not in usage_dict:
-        # We failed to elicit a response
+    # Now figure out whether it's a new format response or old
+    if "result" not in usage_dict and "today_energy" in usage_dict:
+        # It's new style. Map it over to the new format
+        d = { "result" : usage_dict }
+        usage_dict = d
+        
+    # Finally, double check that the dict, whether re-mapped or not
+    # has a result attribute
+    if "result" not in usage_dict:
         return False, False
 
     today_usage = False
