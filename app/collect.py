@@ -25,27 +25,6 @@ CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
 log = logging.getLogger(__name__)
 #logging.basicConfig(level=logging.DEBUG)
 
-
-'''
-Interim fix added to address overly conservative timeouts used in an
-upstream PyP100 module.
-
-Monkey-patch `requests.session` so that it ignores timeouts set lower
-than our desired threshold
-
-Added in utilities/tp-link-to-influxdb#9
-''' 
-import requests
-def request_set_timeout_bound(slf, *args, **kwargs):
-    timeout = kwargs.pop('timeout', 5)
-    if timeout < 3:
-        timeout = 3
-    return slf.request_orig(*args, **kwargs, timeout=timeout)
-
-setattr(requests.sessions.Session, 'request_orig', requests.sessions.Session.request)
-requests.sessions.Session.request = request_set_timeout_bound
-
-
 def load_config():
     ''' Read the config file
     
@@ -145,7 +124,7 @@ def do_work(config, influxes):
             # Set a sane default for auth mode if it's not been specified
             if "auth" not in tapo:
                 tapo['auth'] = "all"
-              
+                
             now_usage_w, today_usage = poll_tapo(
                 tapo['ip'], 
                 config["tapo"]["user"], 
