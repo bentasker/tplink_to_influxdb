@@ -113,6 +113,12 @@ def do_work(config, influxes):
                 }
             
     if "tapo" in config:
+        # Override the tapo logging level - the module calls logger.exception() if it fails to login to a device
+        # The problem with that is, there are now 2 possible (and incompatible) auth schemes, so login may or may
+        # not work - we don't really want log noise from something we're having to handle.
+        tapo_log = logging.getLogger('PyP100')
+        tapo_log.setLevel(logging.CRITICAL)
+                
         for tapo in config["tapo"]["devices"]:
             now_usage_w, today_usage = poll_tapo(tapo['ip'], config["tapo"]["user"], config["tapo"]["passw"])
             if now_usage_w is False:
