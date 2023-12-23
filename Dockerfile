@@ -2,9 +2,10 @@ FROM python:3-alpine
 
 ENV PYTHONUNBUFFERED=1
 # Install deps
-RUN apk add -U g++ gcc make \
-&& pip install pyyaml influxdb-client PyP100 python-kasa \
-&& apk del g++ gcc make
+RUN apk add -U g++ gcc make git \
+&& pip install pyyaml influxdb-client python-kasa \
+&& pip install git+https://github.com/almottier/TapoP100.git@35c3d383ad595505941e8bc10c80ea8903077fdd \
+&& apk del g++ gcc make git
 
 
 # Copy the script up
