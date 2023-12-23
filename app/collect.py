@@ -176,7 +176,8 @@ def poll_kasa(ip):
     try:
         p = SmartPlug(ip)
         asyncio.run(p.update())
-    except:
+    except Exception as e:
+        log.debug(f"Failed to connect to plug: {e}")
         return False, False
             
     # emeter_today relies on external connectivity - it uses NTP to keep track of time
@@ -197,9 +198,10 @@ def poll_kasa(ip):
     # Convert to watts
     try:
         now_usage_w = usage_dict["power_mw"] / 1000
-    except:
+    except Exception as e:
         # An error occurred, let the caller handle it
         log.error(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
+        log.debug(f"Encountered exception: {e}")
         return False, False
 
     return now_usage_w, today_usage
@@ -337,8 +339,9 @@ def poll_tapo(ip, user, passw, auth_mode):
        
     try:
         now_usage_w = usage_dict["result"]["current_power"] / 1000
-    except:
+    except Exception as e:
         log.error(f'Err: failed to calculate {usage_dict["result"]["current_power"]}  / 1000')
+        log.debug(f"Encountered exception: {e}")
         return False, False
     
     return now_usage_w, today_usage
@@ -373,7 +376,8 @@ def sendToInflux(write_api, bucket, org, points_buffer):
     try:
         write_api.write(bucket, org, points_buffer)
         return True
-    except:
+    except Exception as e:
+        log.debug(f"Failed to write to InfluxDB: {e}")
         return False
 
 
