@@ -136,6 +136,17 @@ And then, finally, invoke the script
 app/collect.py
 ```
 
+### Loglevels
+
+By default the system _mostly_ uses the default loglevels. The exception to this is the `PyP100` module which can be quite noisy when the loglevel is set lower than `logging.CRITICAL`.
+
+If further information is required during troubleshooting, log verbosity can be increased by adding `loglevels` attributes to the `poller` section of the config file
+```yaml
+poller:
+   loglevel: "debug" 
+```
+
+
 ----
 
 ## Other Stuff
