@@ -23,7 +23,7 @@ from PyP100 import PyP110
 
 CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
 log = logging.getLogger(__name__)
-#logging.basicConfig(level=logging.DEBUG)
+
 
 def load_config():
     ''' Read the config file
@@ -37,7 +37,46 @@ def load_config():
             config = False
             
     return config
+
+def set_loglevels(config):
+    ''' Set system log-levels to that provided in the config (or defaults if not provided)
     
+    Note: This function explicitly doesn't use logging.info/error etc when setting levels to
+    ensure that the information is available whatever level is set
+    '''
+    
+    # Should we override pyp100's level?
+    set_pyp100 = True
+    
+    if "poller" in config and "loglevel" in config["poller"] and config["poller"]['loglevel']:
+        v = get_loglevel_value(config['poller']['loglevel'])
+        if v:
+            logging.basicConfig(level=v)
+            print(f"Set loglevel to {config['poller']['loglevel']}")
+            set_pyp100 = False
+            
+    # If not already overridden, override the tapo logging level - the pyp100 module calls 
+    # logger.exception() if it fails to login to a device. The problem with that is, 
+    # there are now 2 possible (and incompatible) auth schemes, 
+    # so login may or may not work - we don't really want log noise from something we're having to handle.
+    if set_pyp100:
+        log.debug("Defaulting PyP100 loglevel to CRITICAL")
+        tapo_log = logging.getLogger('PyP100')        
+        tapo_log.setLevel(logging.CRITICAL)
+    
+    return tapo_log
+
+def get_loglevel_value(s):
+    ''' Take a string like INFO and get the loglevel
+    value
+    '''
+    
+    try:
+        return int(getattr(logging, s.upper()))
+    except Exception as e:
+        log.error(f"Config included an invalid loglevel: {s}")
+        return False
+
 
 def main():
     ''' Main Entry point
@@ -48,6 +87,8 @@ def main():
     config = load_config()
     if not config:
         sys.exit(1)
+
+    tapo_log = set_loglevels(config)
 
     # Create the InfluxDB clients
     influxes = []
@@ -92,7 +133,7 @@ def do_work(config, influxes):
     start_time = time.time_ns()
 
     if "kasa" not in config and "tapo" not in config:
-        print("Error: Neither kasa or tapo devices have been defined")
+        log.error("Error: Neither kasa or tapo devices have been defined")
         sys.exit(1)
 
     if "kasa" in config:
@@ -115,12 +156,6 @@ def do_work(config, influxes):
                 }
             
     if "tapo" in config:
-        # Override the tapo logging level - the module calls logger.exception() if it fails to login to a device
-        # The problem with that is, there are now 2 possible (and incompatible) auth schemes, so login may or may
-        # not work - we don't really want log noise from something we're having to handle.
-        tapo_log = logging.getLogger('PyP100')
-        tapo_log.setLevel(logging.CRITICAL)
-                
         for tapo in config["tapo"]["devices"]:
             # Set a sane default for auth mode if it's not been specified
             if "auth" not in tapo:
@@ -176,7 +211,8 @@ def poll_kasa(ip):
     try:
         p = SmartPlug(ip)
         asyncio.run(p.update())
-    except:
+    except Exception as e:
+        log.debug(f"Failed to connect to plug: {e}")
         return False, False
             
     # emeter_today relies on external connectivity - it uses NTP to keep track of time
@@ -197,9 +233,10 @@ def poll_kasa(ip):
     # Convert to watts
     try:
         now_usage_w = usage_dict["power_mw"] / 1000
-    except:
+    except Exception as e:
         # An error occurred, let the caller handle it
-        print(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
+        log.error(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
+        log.debug(f"Encountered exception: {e}")
         return False, False
 
     return now_usage_w, today_usage
@@ -337,8 +374,9 @@ def poll_tapo(ip, user, passw, auth_mode):
        
     try:
         now_usage_w = usage_dict["result"]["current_power"] / 1000
-    except:
-        print(f'Err: failed to calculate {usage_dict["result"]["current_power"]}  / 1000')
+    except Exception as e:
+        log.error(f'Err: failed to calculate {usage_dict["result"]["current_power"]}  / 1000')
+        log.debug(f"Encountered exception: {e}")
         return False, False
     
     return now_usage_w, today_usage
@@ -373,7 +411,8 @@ def sendToInflux(write_api, bucket, org, points_buffer):
     try:
         write_api.write(bucket, org, points_buffer)
         return True
-    except:
+    except Exception as e:
+        log.debug(f"Failed to write to InfluxDB: {e}")
         return False
 
 

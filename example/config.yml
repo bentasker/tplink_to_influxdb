@@ -7,6 +7,9 @@ poller:
    # Interval in seconds between polls
    interval: 20
 
+# Not routinely needed, but useful for troubleshooting
+#   loglevel: "debug"
+
 
 # List tapo devices
 tapo:
