@@ -102,10 +102,11 @@ def do_work(config, influxes):
                 print(f"Failed to communicate with device {kasa['name']}")
                 continue
             
-            if today_usage:
-                print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
-            else:
+            if today_usage is False:
                 print(f"Plug: {kasa['name']} using {now_usage_w}W, today: Not Supplied")
+            else:
+                print(f"Plug: {kasa['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
+                
                 
             stats[kasa['name']] = {
                     "today_usage" : today_usage,
@@ -136,10 +137,10 @@ def do_work(config, influxes):
                 print(f"Failed to communicate with device {tapo['name']}")
                 continue
 
-            if today_usage:
-                print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
-            else:
+            if today_usage is False:
                 print(f"Plug: {tapo['name']} using {now_usage_w}W, today: Not Supplied")
+            else:
+                print(f"Plug: {tapo['name']} using {now_usage_w}W, today: {today_usage/1000} kWh")
                 
             stats[tapo['name']] = {
                     "today_usage" : today_usage,
