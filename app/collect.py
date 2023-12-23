@@ -92,7 +92,7 @@ def do_work(config, influxes):
     start_time = time.time_ns()
 
     if "kasa" not in config and "tapo" not in config:
-        print("Error: Neither kasa or tapo devices have been defined")
+        log.error("Error: Neither kasa or tapo devices have been defined")
         sys.exit(1)
 
     if "kasa" in config:
@@ -199,7 +199,7 @@ def poll_kasa(ip):
         now_usage_w = usage_dict["power_mw"] / 1000
     except:
         # An error occurred, let the caller handle it
-        print(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
+        log.error(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
         return False, False
 
     return now_usage_w, today_usage
@@ -338,7 +338,7 @@ def poll_tapo(ip, user, passw, auth_mode):
     try:
         now_usage_w = usage_dict["result"]["current_power"] / 1000
     except:
-        print(f'Err: failed to calculate {usage_dict["result"]["current_power"]}  / 1000')
+        log.error(f'Err: failed to calculate {usage_dict["result"]["current_power"]}  / 1000')
         return False, False
     
     return now_usage_w, today_usage
