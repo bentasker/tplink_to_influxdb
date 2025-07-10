@@ -135,6 +135,7 @@ And then, finally, invoke the script
 ```sh
 app/collect.py
 ```
+----
 
 ### Loglevels
 
@@ -145,7 +146,6 @@ If further information is required during troubleshooting, log verbosity can be 
 poller:
    loglevel: "debug" 
 ```
-
 
 ----
 
