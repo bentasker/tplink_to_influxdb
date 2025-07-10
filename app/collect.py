@@ -18,7 +18,8 @@ import time
 import yaml
 
 from influxdb_client.client.write_api import SYNCHRONOUS
-from kasa import SmartPlug
+from kasa import Credentials, Discover, Module
+from kasa.iot import IotPlug
 from PyP100 import PyP110
 
 CONF_FILE = os.getenv("CONF_FILE", "example/config.yml")
@@ -137,8 +138,17 @@ def do_work(config, influxes):
         sys.exit(1)
 
     if "kasa" in config:
+        kasa_auth = False
+        if "auth" in config["kasa"]:
+            # The user has configured auth
+            # build an object to pass to the library
+            kasa_auth = Credentials(
+                username = config["kasa"]["auth"]["user"], 
+                password = config["kasa"]["auth"]["passw"]
+            )
+            
         for kasa in config["kasa"]["devices"]:
-            now_usage_w, today_usage = poll_kasa(kasa['ip'])
+            now_usage_w, today_usage = poll_kasa(kasa['ip'], kasa_auth)
             if now_usage_w is False:
                 print(f"Failed to communicate with device {kasa['name']}")
                 continue
@@ -201,46 +211,44 @@ def do_work(config, influxes):
                 print(f"Wrote {len(points_buffer)} points to {dest['name']}")
 
         
-def poll_kasa(ip):
+def poll_kasa(ip,kasa_auth):
     ''' Poll a TP-Link Kasa smartplug
     
-    TODO: need to add some exception handling to this
+    Note: daily usage relies on external connectivity - it uses NTP to keep track of time
+    you need to allow UDP 123 outbound if you're restricting the plug's external connectivity
+    otherwise you'll get 0 or 0.001 back instead of the real value
+     
+    For info, see https://github.com/home-assistant/core/issues/45436#issuecomment-766454897
     '''
     
-    # Connect to the plug and receive stats
-    try:
-        p = SmartPlug(ip)
+    # Discover and connect to the plug, then update to receive stats
+    try:        
+        p = asyncio.run(Discover.discover_single(ip, credentials = kasa_auth))                
         asyncio.run(p.update())
     except Exception as e:
         log.debug(f"Failed to connect to plug: {e}")
         return False, False
-            
-    # emeter_today relies on external connectivity - it uses NTP to keep track of time
-    # you need to allow UDP 123 outbound if you're restricting the plug's external connectivity
-    # otherwise you'll get 0 or 0.001 back instead of the real value
-    # 
-    # See https://github.com/home-assistant/core/issues/45436#issuecomment-766454897
-    #
-    
+                
     # See whether the socket returned daily readings
     today_usage = False
-    if p.emeter_today:
-        # Convert from kWh to Wh
-        today_usage = p.emeter_today * 1000
-        
-    usage_dict = p.emeter_realtime
+    usage_obj = p.modules[Module.Energy]
     
-    # Convert to watts
+    if usage_obj.consumption_today:
+        # Convert from kWh to Wh
+        today_usage = usage_obj.consumption_today * 1000
+            
+    # Recent versions of python-kasa report usage in watts, 
+    # so we don't need to convert this one
+    now_usage_w = usage_obj.current_consumption
+
+    # Make a best-effort attempt to close the connection
+    # some devices do seem to leave a connection hanging
     try:
-        now_usage_w = usage_dict["power_mw"] / 1000
-    except Exception as e:
-        # An error occurred, let the caller handle it
-        log.error(f'Err: failed to calculate {usage_dict["power_mw"]}  / 1000')
-        log.debug(f"Encountered exception: {e}")
-        return False, False
+        asyncio.run(p.disconnect())
+    except:
+        pass
 
     return now_usage_w, today_usage
-
 
 
 def poll_tapo_newauth(ip, user, passw):
