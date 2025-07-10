@@ -8,8 +8,7 @@ poller:
    interval: 20
 
 # Not routinely needed, but useful for troubleshooting
-#   loglevel: "debug"
-
+#  loglevel: "debug"
 
 # List tapo devices
 tapo:
