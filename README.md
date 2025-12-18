@@ -94,8 +94,12 @@ The configuration file needs to be exported into the container at `/config.yml` 
 docker run --rm \
 --name="tplink_to_influxdb" \
 -v $PWD/config.yml:/config.yml \
-bentasker12/tplink_to_influxdb:latest
+bentasker12/tplink_to_influxdb:weekly
 ```
+
+Note: as of [utilities/tp-link-to-influxdb#13](https://projects.bentasker.co.uk/gils_projects/issue/utilities/tp-link-to-influxdb/13.html) the image is rebuilt weekly (and pushed to the `weekly` tag).
+
+If you experience issues with `weekly` you can fall back to `latest` which is only ever manually pushed (and very rarely at that).
 
 ----
 
